@@ -11,7 +11,7 @@
  * Output     : Return the reconstructed communicator, myCommWorld                 *
  * Author     : Md Mohsin Ali (md.ali<AT>anu.edu.au)                               *
  * Created    : August 2013                                                        *
- * Updated    : May 2014, June 2014, September 2014                                *
+ * Updated    : December 2015                                                      *
  * Help       : See README file                                                    *
  ***********************************************************************************/
 
@@ -28,11 +28,10 @@
 // Main function
 int main(int argc, char ** argv){
         // Variable declarations
-	int i, ret, rank, size, testFails, testRunCount, childFlag = 0, 
-            numFails, numNodeFails, sumPrevNumNodeFails = 0, verbosity = 0,
-            totFails, oldGroupSize, *failedList, flag;
-        MPI_Comm tempShrink, myCommWorld = MPI_COMM_WORLD, parent;
-        MPI_Group failedGroup, oldGroup;
+	int i, rank, size, testFails, testRunCount, childFlag = 0, numFails,
+            numNodeFails, sumPrevNumNodeFails = 0, verbosity = 0, totFails,
+            *failedList, flag;
+        MPI_Comm myCommWorld = MPI_COMM_WORLD, parent;
 
         // MPI initialization and setting global communicator
 	MPI_Init(&argc, &argv);

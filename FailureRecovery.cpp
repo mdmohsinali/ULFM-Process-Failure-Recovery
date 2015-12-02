@@ -12,7 +12,7 @@
  *              supporting functions to achieve this                               *
  * Author     : Md Mohsin Ali (md.ali<AT>anu.edu.au)                               *
  * Created    : August 2013                                                        *
- * Updated    : May 2014, June 2014, September 2014                                *
+ * Updated    : December 2015                                                      *
  * Help       : See README file                                                    *
  ***********************************************************************************/
 
@@ -55,13 +55,17 @@
 MPI_Comm communicatorReconstruct(MPI_Comm myCommWorld, int childFlag, int * listFails,
         int * numFails, int * numNodeFails, int sumPrevNumNodeFails, int argc,
         char ** argv, int verbosity) {
-	int i, ret, rank, nprocs, oldRank = 0, totFails = 0, * failedList, flag,
-            iterCounter = 0, failure = 0, recvVal[2], length;
-        MPI_Status mpiStatus;
-	MPI_Comm parent, mcw, dupComm, tempIntracomm, unorderIntracomm;
+	int i, ret, rank, nprocs, totFails = 0, * failedList, flag,
+            iterCounter = 0, failure = 0;
+	MPI_Comm parent, mcw, dupComm, tempIntracomm;
         MPI_Errhandler newEh;
         double startTime = 0.0, endTime;
+#ifndef SHRUNKEN_RECOVERY
+        int oldRank = 0, recvVal[2], length;
+        MPI_Status mpiStatus;
+        MPI_Comm unorderIntracomm;
         char hostName[MPI_MAX_PROCESSOR_NAME];
+#endif //SHRUNKEN_RECOVERY
 
         // Error handler
         MPI_Comm_create_errhandler(mpiErrorHandler, &newEh);
@@ -275,17 +279,32 @@ void mpiErrorHandler(MPI_Comm * comm, int *errorCode, ...){
 void repairComm(MPI_Comm * broken, MPI_Comm * repaired, int iteration, int * listFails,
         int * numFails, int * numNodeFails, int sumPrevNumNodeFails, int argc,
         char ** argv, int verbosity) {
-	MPI_Comm tempShrink, unorderIntracomm, tempIntercomm;
-	int i, ret, result, procsNeeded = 0, oldRank, newRank, oldGroupSize,
-            rankKey = 0, flag, * tempRanks, * failedRanks, * errCodes, rank,
-            hostfileLineIndex, hostfileLastLineIndex, tempLineIndex,
-            * failedNodeList = NULL, * nodeList = NULL, totNodeFailed = 0,
-            nprocs, j, * shrinkMergeList, * procsNeededToLaunch, failedNodeCounter;
+	MPI_Comm tempShrink;
+	int i, ret, result, procsNeeded = 0, oldRank, oldGroupSize, flag,
+            * tempRanks, * failedRanks, * errCodes, rank, * procsNeededToLaunch;
 	MPI_Group oldGroup, failedGroup, shrinkGroup;
-        double startTime = 0.0, endTime, shrinkTime, spawnTime, mergeTime, agreeTime;
+        double startTime = 0.0, endTime, shrinkTime;
         char hostName[128], ** appToLaunch, *** argvToLaunch, ** hostNameToLaunch,
              * hostNameFailed;
         MPI_Info * hostInfoToLaunch;
+#ifdef SHRUNKEN_RECOVERY
+#undef RECOV_ON_SPARE_NODES // in case not disabled
+#endif //SHRUNKEN_RECOVERY
+
+#ifndef SHRUNKEN_RECOVERY
+        MPI_Comm unorderIntracomm, tempIntercomm;
+        int newRank, rankKey = 0, nprocs, j, * shrinkMergeList;
+        double spawnTime, mergeTime, agreeTime;
+#ifdef RECOV_ON_SPARE_NODES
+#define RUN_ON_COMPUTE_NODES // in case this is not enabled
+       int hostfileLastLineIndex, * failedNodeList = NULL, * nodeList = NULL,
+           totNodeFailed = 0, failedNodeCounter;
+#endif //RECOV_ON_SPARE_NODES
+#endif //SHRUNKEN_RECOVERY
+
+#ifdef RUN_ON_COMPUTE_NODES
+        int hostfileLineIndex, tempLineIndex;
+#endif //RUN_ON_COMPUTE_NODES
 
         gethostname(hostName, sizeof(hostName));
         MPI_Comm_rank(*broken, &rank);
@@ -354,6 +373,7 @@ void repairComm(MPI_Comm * broken, MPI_Comm * repaired, int iteration, int * lis
                    "-----\n", rank, endTime - startTime);
         }
 #ifndef SHRUNKEN_RECOVERY
+#ifdef RUN_ON_COMPUTE_NODES
 #ifdef RECOV_ON_SPARE_NODES
 	// Determining total number of node failed, and a list of them
         hostfileLastLineIndex = getHostfileLastLineIndex(); // started from 0
@@ -385,6 +405,7 @@ void repairComm(MPI_Comm * broken, MPI_Comm * repaired, int iteration, int * lis
 	      failedNodeList[failedNodeCounter++] = nodeCounter;
 	}
 #endif //RECOV_ON_SPARE_NODES
+#endif //RUN_ON_COMPUTE_NODES
 #endif //SHRUNKEN_RECOVERY
         hostNameFailed = NULL;
 #pragma omp parallel for default(shared)
@@ -430,11 +451,11 @@ void repairComm(MPI_Comm * broken, MPI_Comm * repaired, int iteration, int * lis
             MPI_Info_set(hostInfoToLaunch[i], (char *)"host", hostNameToLaunch[i]);
         }
 
-        spawnTime = MPI_Wtime();
 #ifdef HANG_ON_REMOVE
         OMPI_Comm_agree(tempShrink, &flag);
 #endif
 #ifndef SHRUNKEN_RECOVERY
+        spawnTime = MPI_Wtime();
 	// Spawn the new process(es)
 	if(MPI_SUCCESS != (ret = MPI_Comm_spawn_multiple(procsNeeded, appToLaunch,
 	   argvToLaunch, procsNeededToLaunch, hostInfoToLaunch, 0, tempShrink,

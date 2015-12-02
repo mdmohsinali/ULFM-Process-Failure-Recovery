@@ -12,7 +12,7 @@
  *              replacement, and other supporting functions to achieve this         *
  * Author     : Md Mohsin Ali (md.ali<AT>anu.edu.au)                                *
  * Created    : August 2013                                                         *
- * Updated    : May 2014, June 2014, September 2014                                 *
+ * Updated    : December 2015                                                       *
  * Help       : See README file                                                     *
  ************************************************************************************/
 
