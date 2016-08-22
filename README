@@ -3,7 +3,7 @@
  * Description: Contains detailed information about how to use the code             *
                 to reconstruct faulty communicator by performing in-order failed    *
                 process replacement, and other supporting functions to achieve this *
- * Author     : Md Mohsin Ali (md.ali<AT>anu.edu.au)                                *
+ * Author     : Md Mohsin Ali (mohsin.ali<AT>anu.edu.au)                                *
  * Created    : August 2013                                                         *
  * Updated    : December 2015                                                       *
  ************************************************************************************/
@@ -87,4 +87,4 @@
 
 10. HOW TO CONTACT IF THERE IS ANY PROBLEM?
 
-    Send an email to md.ali<AT>anu.edu.au 
+    Send an email to mohsin.ali<AT>anu.edu.au 
