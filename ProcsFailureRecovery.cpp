@@ -9,7 +9,7 @@
  * File       : ProcsFailureRecovery.cpp                                           *
  * Description: Testing reconstructed communicator after a single process failure  *
  * Output     : Return the reconstructed communicator, myCommWorld                 *
- * Author     : Md Mohsin Ali (mohsin.ali<AT>anu.edu.au)                               *
+ * Author     : Md Mohsin Ali (mohsin.ali<AT>anu.edu.au)                           *
  * Created    : August 2013                                                        *
  * Updated    : December 2015                                                      *
  * Help       : See README file                                                    *
